@@ -4,97 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CosmicGifts</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body, html { height:100%; overflow:hidden; background:#000; font-family:Arial, sans-serif; }
 
-    #video-container {
-      position:fixed;
-      inset:0;
-      z-index:1;
-      background:#000;
-    }
-
-    #intro-video {
-      width:100%;
-      height:100%;
-      object-fit: contain;
-      object-position: center;
-      background:#000;
-    }
-
-    #blackout {
-      position:fixed;
-      inset:0;
-      background:#000;
-      z-index:10;
-      opacity:0;
-      transition:opacity 0.6s ease-in-out;
-      pointer-events:none;
-    }
-
-    #welcome {
-      position:fixed;
-      inset:0;
-      z-index:11;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      color:#fff;
-      opacity:0;
-      transition:opacity 2.5s ease 0.3s; /* появляется через 0.3 с после чёрного */
-      pointer-events:none;
-      padding: 4vw 6vw; /* отступы, чтобы текст не выходил за края видео */
-      text-align:center;
-    }
-
-    .main-text {
-      font-size: clamp(2.8rem, 7vw, 5.2rem);
-      font-weight:300;
-      letter-spacing:0.4rem;
-      margin-bottom:1.2rem;
-      text-shadow:0 0 25px rgba(255,255,255,0.5);
-      white-space: pre;
-    }
-
-    .site-name {
-      font-size: clamp(4.5rem, 11vw, 8.5rem);
-      font-style:italic;
-      font-weight:700;
-      letter-spacing:0.7rem;
-      background: linear-gradient(90deg, #40c4ff, #a5f3ff, #40c4ff);
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-      text-shadow:0 0 35px #40c4ff80;
-    }
-
-    #main {
-      position:fixed;
-      inset:0;
-      background:#000;
-      color:#fff;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size: clamp(2.5rem, 8vw, 4rem);
-      opacity:0;
-      transition:opacity 1.8s ease;
-    }
-
-    .fade-out {
-      opacity:0 !important;
-      transition:opacity 1.2s ease forwards;
-    }
-  </style>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-  <div id="video-container">
+  <div class="stars"></div>
+
+  <div id="intro">
     <video id="intro-video" muted playsinline>
-      <source src="intro.mp4" type="video/mp4">
+      <source src="assets/intro.mp4" type="video/mp4">
       Ваш браузер не поддерживает видео.
     </video>
+  </div>
+
+  <div id="start-overlay">
+    <button id="start-btn">Начать просмотр</button>
   </div>
 
   <div id="blackout"></div>
@@ -104,51 +29,56 @@
     <div class="site-name">CosmicGifts</div>
   </div>
 
-  <div id="main">
-    Добро пожаловать в CosmicGifts!
+  <div id="main-app">
+
+    <div id="title-tab" class="tab-content active">
+      <h1>Добро пожаловать в CosmicGifts</h1>
+      <div class="welcome-text">
+        платформу, в которой <b>взлетаешь к звёздам</b><br><br>
+
+        <b>Путеводитель по вкладкам:</b><br><br>
+
+        <b>Кейсы</b> → открытие кейсов и получение случайных наград<br>
+        <b>Краш</b> → твоя ставка взлетает к небесам, но не всегда удачно<br>
+        <b>Кошелёк</b> → твоё количество TON, пополнение и вывод<br>
+        <b>Профиль</b> → информация о количестве открытых кейсов, ставок в Краш, а также реферальная система<br><br>
+
+        Водонос (создатель сайта) — @drozddos
+      </div>
+    </div>
+
+    <div id="cases-tab" class="tab-content">
+      <h2>Кейсы</h2>
+      <p class="tech-message">Вкладка на техработах</p>
+    </div>
+
+    <div id="crash-tab" class="tab-content">
+      <h2>Краш</h2>
+      <p>Раздел в разработке</p>
+    </div>
+
+    <div id="wallet-tab" class="tab-content">
+      <h2>Кошелёк</h2>
+      <p>Раздел в разработке</p>
+    </div>
+
+    <div id="profile-tab" class="tab-content">
+      <h2>Профиль</h2>
+      <p class="tech-message">Вкладка на техработах</p>
+    </div>
+
+    <div id="bottom-nav">
+      <div class="nav-item active" data-tab="title-tab"><span>Титульник</span></div>
+      <div class="nav-item" data-tab="cases-tab"><span>Кейсы</span></div>
+      <div class="nav-item" data-tab="crash-tab"><span>Краш</span></div>
+      <div class="nav-item" data-tab="wallet-tab"><span>Кошелёк</span></div>
+      <div class="nav-item" data-tab="profile-tab"><span>Профиль</span></div>
+    </div>
   </div>
 
-  <script>
-    const video = document.getElementById('intro-video');
-    const blackout = document.getElementById('blackout');
-    const welcome = document.getElementById('welcome');
-    const main = document.getElementById('main');
-
-    // Автозапуск + защита от блокировки
-    function tryPlay() {
-      video.play().catch(() => {
-        // Если заблокировано — ждём клика по экрану
-        document.body.addEventListener('click', () => {
-          video.play();
-        }, { once: true });
-      });
-    }
-
-    tryPlay();
-
-    // Чёрный экран за 0.4 секунды до конца
-    video.addEventListener('timeupdate', () => {
-      if (video.duration && video.currentTime >= video.duration - 0.4) {
-        blackout.style.opacity = '1';
-      }
-    });
-
-    // Когда видео закончилось
-    video.onended = () => {
-      // Держим чёрный экран + текст ровно 2 секунды
-      setTimeout(() => {
-        // Плавно убираем всё
-        blackout.style.opacity = '0';
-        welcome.style.opacity = '0';
-        document.getElementById('video-container').style.opacity = '0';
-
-        // Показываем основной контент
-        setTimeout(() => {
-          main.style.opacity = '1';
-        }, 1200);
-      }, 2000);
-    };
-  </script>
-
+  <script src="js/intro.js"></script>
+  <script src="js/tabs.js"></script>
+  
+</script>
 </body>
 </html>
