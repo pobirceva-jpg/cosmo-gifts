@@ -1,5 +1,6 @@
-console.log("intro.js загружен");
+console.log("intro.js загружен — интро отключено");
 
+// Все переменные оставляем на месте
 const video = document.getElementById('intro-video');
 const overlay = document.getElementById('start-overlay');
 const blackout = document.getElementById('blackout');
@@ -7,70 +8,35 @@ const welcome = document.getElementById('welcome');
 const introDiv = document.getElementById('intro');
 const mainApp = document.getElementById('main-app');
 
+// Функция запуска видео — теперь ничего не делает
 function startVideo() {
-  console.log("Клик — запускаем видео");
-
-  // Удаляем оверлей сразу
-  if (overlay && overlay.parentNode) {
-    overlay.parentNode.removeChild(overlay);
-    console.log("Оверлей удалён");
-  }
-
-  video.currentTime = 0;
-  video.play()
-    .then(() => console.log("Видео запущено"))
-    .catch(err => {
-      console.error("Ошибка play:", err);
-      showMainContent(); // на случай ошибки показываем контент
-    });
+  console.log("Интро отключено — startVideo не запускается");
+  // Если захочешь включить обратно — раскомментируй ниже
+  // if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  // video.currentTime = 0;
+  // video.play().catch(() => {});
 }
 
-overlay.addEventListener('click', startVideo);
+// Если оверлей всё ещё есть — скрываем его
+if (overlay) {
+  overlay.style.display = 'none';
+  overlay.style.pointerEvents = 'none';
+}
 
-video.addEventListener('timeupdate', () => {
-  if (video.duration && video.currentTime >= video.duration - 0.4) {
-    console.log("Почти конец видео — затемняем");
-    blackout.style.opacity = '1';
-  }
-});
+// Отключаем события
+// overlay.removeEventListener('click', startVideo); // если нужно
 
-video.addEventListener('ended', () => {
-  console.log("Видео закончилось");
+// Отключаем timeupdate и ended
+if (video) {
+  video.removeEventListener('timeupdate', () => {});
+  video.removeEventListener('ended', () => {});
+}
 
-  setTimeout(() => {
-    blackout.style.opacity = '0';
-    welcome.style.opacity = '1';
-
-    setTimeout(() => {
-      welcome.style.opacity = '0';
-
-      // Полностью удаляем ненужные слои
-      if (introDiv && introDiv.parentNode) {
-        introDiv.parentNode.removeChild(introDiv);
-        console.log("Интро полностью удалено");
-      }
-      if (blackout && blackout.parentNode) {
-        blackout.parentNode.removeChild(blackout);
-        console.log("#blackout удалён — клики теперь свободны");
-      }
-      if (welcome && welcome.parentNode) {
-        welcome.parentNode.removeChild(welcome);
-      }
-
-      setTimeout(() => {
-        mainApp.style.opacity = '1';
-        console.log("Главный экран показан");
-      }, 1200);
-    }, 2000);
-  }, 100);
-});
-
-// Функция на случай, если видео не запустилось
-function showMainContent() {
-  console.log("Экстренный показ основного контента");
-  if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
-  if (introDiv && introDiv.parentNode) introDiv.parentNode.removeChild(introDiv);
-  if (blackout && blackout.parentNode) blackout.parentNode.removeChild(blackout);
-  if (welcome && welcome.parentNode) welcome.parentNode.removeChild(welcome);
+// Сразу показываем основной контент (если ещё не показан)
+if (mainApp) {
   mainApp.style.opacity = '1';
+  console.log("Основной контент показан сразу");
 }
+
+// Если нужно включить интро обратно — раскомментируй эту строку:
+// overlay.addEventListener('click', startVideo);

@@ -287,3 +287,6 @@ body, html {
 .tab-content {
   pointer-events: auto !important;
 }
+#main-app {
+  opacity: 1 !important; /* сразу видимый */
+}
