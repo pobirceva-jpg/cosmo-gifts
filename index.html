@@ -4,38 +4,53 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CosmicGifts</title>
-
   <link rel="stylesheet" href="css/styles.css">
-
-  <!-- TonConnect UI -->
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 </head>
 <body>
-
   <div class="stars"></div>
-
   <div id="main-app">
-
+    <!-- Главная вкладка -->
     <div id="title-tab" class="tab-content active">
-      <h1>Добро пожаловать в CosmicGifts</h1>
-      <p>Подключение кошельков: Telegram Wallet, Tonkeeper</p>
-      <p>Пополнение и вывод — только TON</p>
-      <p>Создатель — @drozddos</p>
+      <div class="welcome-box">
+        <h1>Добро пожаловать в CosmicGifts</h1>
+        <p>Подключение кошельков: Telegram Wallet, Tonkeeper</p>
+        <p>Пополнение и вывод — только TON</p>
+        <p>Создатели — Cosmo Creators</p>
+      </div>
     </div>
-
+    <!-- Кейсы -->
     <div id="cases-tab" class="tab-content">
       <h2>Кейсы</h2>
       <p>В разработке</p>
     </div>
-
+    <!-- Краш -->
     <div id="crash-tab" class="tab-content">
-      <h2>Краш</h2>
-      <p>В разработке</p>
+      <div class="crash-frame">
+        <div class="game-zone">
+          <div class="grid-bg"></div>
+          <canvas id="crash-graph" style="width:100%; height:100%; display:block; background:transparent;"></canvas>
+          <div id="ton-icon">₿</div>
+          <div id="current-multiplier">1.00x</div>
+        </div>
+        <div class="crash-controls">
+          <div class="expectation-bar">
+            <span>Ожидание</span>
+            <div class="multi-history"></div>
+          </div>
+          <div class="bet-row">
+            <input type="number" id="bet-amount" placeholder="0.00" min="0.05" step="0.01" class="bet-input">
+            <button id="place-bet-btn" class="bet-btn">Сделать ставку</button>
+            <button id="cash-out-btn" class="cashout-btn" style="display:none;">Вывести</button>
+          </div>
+          <div class="players-list" id="players-list"></div>
+        </div>
+      </div>
     </div>
-
+    <!-- Кошелёк -->
     <div id="wallet-tab" class="tab-content">
       <h2>Кошелёк</h2>
-
       <div id="auth-form">
         <input type="email" id="email" placeholder="Email" required><br><br>
         <input type="password" id="password" placeholder="Пароль" required><br><br>
@@ -43,7 +58,6 @@
         <button id="signin-btn">Войти</button>
         <button id="logout-btn" style="display:none;">Выйти</button>
       </div>
-
       <div id="wallet-info" style="display:none;">
         <p>Аккаунт: <span id="user-email"></span></p>
         <p>Баланс: <span id="user-balance">0 TON</span></p>
@@ -53,12 +67,12 @@
         <button id="withdraw-btn">Вывести</button>
       </div>
     </div>
-
+    <!-- Профиль -->
     <div id="profile-tab" class="tab-content">
       <h2>Профиль</h2>
       <p>В разработке</p>
     </div>
-
+    <!-- Навбар -->
     <div id="bottom-nav">
       <div class="nav-item active" data-tab="title-tab">Главная</div>
       <div class="nav-item" data-tab="cases-tab">Кейсы</div>
@@ -67,219 +81,7 @@
       <div class="nav-item" data-tab="profile-tab">Профиль</div>
     </div>
   </div>
-
-  <script src="js/intro.js"></script>
   <script src="js/tabs.js"></script>
-
-  <!-- Supabase -->
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
-    window.supabase = createClient(
-      'https://gsjyskfnhmcpucukwjqb.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdzanlza2ZuaG1jcHVjdWt3anFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NTI5MDcsImV4cCI6MjA4ODUyODkwN30.sP8rFNtSZp5NLGw25N3fXKj4EVAQLU0VboZdbumgw2A'
-    );
-
-    console.log("Supabase подключён успешно");
-  </script>
-
-  <!-- Основная логика -->
-  <script>
-    // Инициализация TonConnectUI
-    window.tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: 'https://gsjyskfnhmcpucukwjqb.supabase.co/storage/v1/object/public/assets/tonconnect-manifest.json'
-    });
-
-    console.log("TonConnectUI создан:", window.tonConnectUI);
-
-    // Ожидание готовности TonConnect
-    function waitTonConnect(callback, attempts = 0) {
-      if (attempts > 40) {
-        console.error("TonConnectUI не загрузился за 12 секунд");
-        return;
-      }
-      if (window.tonConnectUI?.connectWallet && typeof window.tonConnectUI.connectWallet === 'function') {
-        console.log("TonConnect готов к использованию");
-        callback();
-      } else {
-        setTimeout(() => waitTonConnect(callback, attempts + 1), 300);
-      }
-    }
-
-    // Загрузка данных пользователя и баланса после входа / при загрузке
-    window.loadUserAndWallet = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        document.getElementById('auth-form').style.display = 'none';
-        document.getElementById('wallet-info').style.display = 'block';
-        document.getElementById('user-email').innerText = user.email;
-        document.getElementById('logout-btn').style.display = 'inline';
-        // Загружаем/создаём запись в accounts
-        let { data, error } = await supabase
-          .from('accounts')
-          .select('wallet_address, balance')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error && error.code === 'PGRST116') { // нет записи → создаём
-          ({ data, error } = await supabase
-            .from('accounts')
-            .insert({ user_id: user.id, balance: 0 })
-            .select()
-            .single());
-        }
-
-        if (error) {
-          console.error("Ошибка accounts:", error);
-          document.getElementById('wallet-status').innerText = 'Ошибка загрузки';
-          document.getElementById('user-balance').innerText = '—';
-        } else {
-          const wallet = data?.wallet_address || 'не подключён';
-          const balance = data?.balance ?? 0;
-          document.getElementById('wallet-status').innerText = `Кошелёк: ${wallet.slice(0,6)}...`;
-          document.getElementById('user-balance').innerText = `${balance} TON`;
-        }
-      } else {
-        document.getElementById('auth-form').style.display = 'block';
-        document.getElementById('wallet-info').style.display = 'none';
-        document.getElementById('logout-btn').style.display = 'none';
-      }
-    };
-
-    // Обновление баланса (для симуляции и будущих операций)
-    window.updateBalance = async (userId, delta) => {
-      const { data: row, error: fetchErr } = await supabase
-        .from('accounts')
-        .select('balance')
-        .eq('user_id', userId)
-        .single();
-
-      if (fetchErr) throw fetchErr;
-
-      const current = row?.balance ?? 0;
-      const newBalance = current + delta;
-
-      if (newBalance < 0) throw new Error('Недостаточно средств');
-
-      const { error } = await supabase
-        .from('accounts')
-        .update({ balance: newBalance })
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      return newBalance;
-    };
-
-    // Регистрация
-    window.signUp = async () => {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      if (!email || !password) return alert('Заполните email и пароль');
-
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) alert('Ошибка регистрации: ' + error.message);
-      else alert('Зарегистрирован! Проверьте почту.');
-    };
-
-    // Вход
-    window.signIn = async () => {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      if (!email || !password) return alert('Заполните email и пароль');
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) alert('Ошибка входа: ' + error.message);
-      else {
-        await loadUserAndWallet();
-      }
-    };
-
-    // Выход
-    window.logout = async () => {
-      await supabase.auth.signOut();
-      await loadUserAndWallet();
-    };
-
-    // Подключение кошелька
-    window.connectWallet = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return alert('Сначала войдите');
-
-      if (!window.tonConnectUI?.connectWallet) {
-        alert("TonConnect ещё не готов. Подождите или перезагрузите страницу.");
-        return;
-      }
-
-      try {
-        const wallet = await window.tonConnectUI.connectWallet();
-        const address = wallet.account.address;
-
-        const { error } = await supabase
-          .from('accounts')
-          .upsert({ user_id: user.id, wallet_address: address }, { onConflict: 'user_id' });
-
-        if (error) throw error;
-
-        alert('Кошелёк привязан!');
-        await loadUserAndWallet();
-      } catch (err) {
-        console.error(err);
-        alert('Ошибка подключения: ' + (err.message || 'Неизвестная ошибка'));
-      }
-    };
-
-    // Симуляция пополнения
-    window.deposit = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return alert('Сначала войдите');
-
-      const amountStr = prompt('Сумма пополнения (TON):');
-      const amount = parseFloat(amountStr);
-      if (isNaN(amount) || amount <= 0) return alert('Неверная сумма');
-
-      try {
-        const newBalance = await updateBalance(user.id, amount);
-        document.getElementById('user-balance').innerText = `${newBalance} TON`;
-        alert(`Баланс пополнен на ${amount} TON (симуляция)`);
-      } catch (err) {
-        alert('Ошибка: ' + err.message);
-      }
-    };
-
-    // Симуляция вывода
-    window.withdraw = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return alert('Сначала войдите');
-
-      const amountStr = prompt('Сумма вывода (TON):');
-      const amount = parseFloat(amountStr);
-      if (isNaN(amount) || amount <= 0) return alert('Неверная сумма');
-
-      try {
-        const newBalance = await updateBalance(user.id, -amount);
-        document.getElementById('user-balance').innerText = `${newBalance} TON`;
-        alert(`Вывод ${amount} TON успешен (симуляция)`);
-      } catch (err) {
-        alert('Ошибка: ' + err.message);
-      }
-    };
-
-    // Инициализация после загрузки страницы
-    window.addEventListener('load', () => {
-      console.log("Страница загружена");
-
-waitTonConnect(async () => {
-        await loadUserAndWallet();
-
-        // Привязка событий к кнопкам (один раз)
-        document.getElementById('signup-btn')?.addEventListener('click', signUp);
-        document.getElementById('signin-btn')?.addEventListener('click', signIn);
-        document.getElementById('logout-btn')?.addEventListener('click', logout);
-        document.getElementById('connect-wallet-btn')?.addEventListener('click', connectWallet);
-        document.getElementById('deposit-btn')?.addEventListener('click', deposit);
-        document.getElementById('withdraw-btn')?.addEventListener('click', withdraw);
-      });
-    });
-  </script>
-
+  <script src="js/main.js" type="module"></script>
 </body>
 </html>

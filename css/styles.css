@@ -13,7 +13,6 @@ body, html {
   font-family: Arial, sans-serif;
 }
 
-/* Космические звёзды */
 .stars {
   position: fixed;
   inset: 0;
@@ -21,272 +20,408 @@ body, html {
   z-index: 0;
 }
 
-.stars::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: 
-    radial-gradient(2px 2px at 20px 30px, #eee, transparent),
-    radial-gradient(2px 2px at 40px 70px, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 90px 40px, #ddd, transparent),
-    radial-gradient(1px 1px at 130px 80px, white, transparent),
-    radial-gradient(2px 2px at 160px 120px, #ccc, transparent);
-  background-repeat: repeat;
-  background-size: 200px 200px, 180px 180px, 220px 220px, 150px 150px, 250px 250px;
-  opacity: 0.8;
-  animation: twinkle-small 100s infinite linear;
-}
-
-.stars::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: 
-    radial-gradient(4px 4px at 60px 100px, white, transparent 70%),
-    radial-gradient(5px 5px at 200px 50px, #f0f8ff, transparent 70%),
-    radial-gradient(3px 3px at 300px 180px, #e0ffff, transparent 70%),
-    radial-gradient(6px 6px at 80px 220px, white, transparent 60%);
-  background-repeat: repeat;
-  background-size: 400px 400px;
-  opacity: 0.5;
-  animation: twinkle-large 160s infinite ease-in-out;
-}
-
-@keyframes twinkle-small {
-  0%, 100% { opacity: 0.6; }
-  50%      { opacity: 1; }
-}
-
-@keyframes twinkle-large {
-  0%, 100% { opacity: 0.35; }
-  50%      { opacity: 0.7; }
-}
-
-/* ────────────────────────────────────── Интро ────────────────────────────────────── */
-#intro {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  background: #000;
-}
-
-#intro-video {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-#start-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  background: rgba(0,0,0,0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-#start-btn {
-  padding: 30px 80px;
-  font-size: 2.8rem;
-  background: linear-gradient(45deg, #40c4ff, #0288d1);
-  border: none;
-  border-radius: 20px;
-  color: white;
-  cursor: pointer;
-  box-shadow: 0 0 50px #40c4ff90;
-  transition: all 0.3s;
-}
-
-#start-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 70px #40c4ff;
-}
-
-#blackout {
-  position: fixed;
-  inset: 0;
-  background: #000;
-  z-index: 10;
-  opacity: 0;
-  transition: opacity 0.6s ease-in-out;
-}
-
-#welcome {
-  position: fixed;
-  inset: 0;
-  z-index: 11;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  opacity: 0;
-  transition: opacity 2s ease 0.5s;
-  pointer-events: none;
-  padding: 5vw;
-  text-align: center;
-}
-
-.main-text {
-  font-size: clamp(2.5rem, 8vw, 5rem);
-  font-weight: 300;
-  letter-spacing: 0.4rem;
-  margin-bottom: 1rem;
-  text-shadow: 0 0 25px rgba(255,255,255,0.6);
-  white-space: pre;
-}
-
-.site-name {
-  font-size: clamp(4rem, 12vw, 8rem);
-  font-style: italic;
-  font-weight: 700;
-  background: linear-gradient(90deg, #40c4ff, #a5f3ff, #40c4ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 35px #40c4ff80;
-}
-
-/* ────────────────────────────────────── Главный экран ────────────────────────────────────── */
 #main-app {
   position: fixed;
   inset: 0;
   z-index: 2;
-  opacity: 0;
-  transition: opacity 1.5s ease;
-  
-  background: rgba(0, 0, 0, 0.10);          /* ← 80% прозрачности */
-  
+  background: rgba(0, 0, 0, 0.10);
   display: flex;
   flex-direction: column;
+  padding-bottom: 70px;
 }
 
 .tab-content {
   flex: 1;
   overflow-y: auto;
-  padding: 40px 20px 120px;
+  padding: 20px 15px 90px;
   display: none;
-  text-align: center;
+  flex-direction: column;
 }
 
 .tab-content.active {
-  display: block;
+  display: flex;
 }
 
-#title-tab {
+#bottom-nav {
+  position: fixed !important;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(15px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex !important;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 9999 !important;
+}
+
+.nav-item {
+  color: #aaaaaa;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  width: 20%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.nav-item.active {
+  color: #40c4ff;
+  text-shadow: 0 0 10px rgba(64, 196, 255, 0.6);
+}
+
+/* Главная вкладка */
+#title-tab .welcome-box {
   background: rgba(8, 12, 35, 0.75);
   border-radius: 20px;
   margin: 40px auto;
   max-width: 90%;
   padding: 40px 25px;
-  box-shadow: 0 0 60px rgba(64, 196, 255, 0.25);
+  box-shadow: 0 0 80px rgba(64, 196, 255, 0.25);
 }
-
 #title-tab h1 {
   font-size: clamp(2.2rem, 6vw, 3.2rem);
   margin-bottom: 2rem;
   color: #40c4ff;
   text-shadow: 0 0 20px #40c4ff80;
 }
-#title-tab .welcome-text {
+
+#title-tab p {
   font-size: 1.3rem;
   line-height: 1.8;
   color: #e0e0ff;
   max-width: 800px;
-  margin: 0 auto;
+  margin: 0 auto 1rem;
 }
 
-#title-tab .welcome-text b {
-  color: #a5f3ff;
+/* Краш — максимальная изоляция + структура */
+#crash-tab {
+  position: relative;
+  overflow: hidden;
+  background: #0a0e17;
+  height: 100%;
+  width: 100%;
+  isolation: isolate;
 }
 
-/* Нижняя панель */
-#bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 80px;
-  background: rgba(0,0,0,0.92);
-  backdrop-filter: blur(12px);
-  border-top: 1px solid #333;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  
-  z-index: 1000 !important;           /* ← критически важно: выше всего остального */
-  pointer-events: auto !important;    /* ← разрешаем клики */
+.tab-content:not(#crash-tab) .crash-frame,
+.tab-content:not(#crash-tab) .game-zone,
+.tab-content:not(#crash-tab) #current-multiplier,
+.tab-content:not(#crash-tab) #rocket,
+.tab-content:not(#crash-tab) .crash-controls,
+.tab-content:not(#crash-tab) .grid-bg,
+.tab-content:not(#crash-tab) #crash-graph,
+.tab-content:not(#crash-tab) .expectation-bar,
+.tab-content:not(#crash-tab) .bet-row {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
-.nav-item {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  z-index: 1001 !important;
-  touch-action: manipulation;
-}
-
-.nav-item {
+.crash-frame {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  color: #aaa;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.25s;
-  width: 20%;
-  user-select: none;
+  height: 100%;
+  width: 100%;
 }
 
-.nav-item.active {
-  color: #40c4ff;
-  text-shadow: 0 0 12px #40c4ff90;
+.game-zone {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 50vh;
+  overflow: hidden;
 }
 
-.nav-item span {
-  margin-top: 6px;
+.grid-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, #0f1624, #0a0e17),
+              repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(0, 180, 255, 0.1) 40px, rgba(0, 180, 255, 0.1) 41px),
+              repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0, 180, 255, 0.1) 40px, rgba(0, 180, 255, 0.1) 41px);
+  background-size: 100% 100%, 100% 41px, 41px 100%;
+  
 }
-.tech-message {
-  margin-top: 40px;
-  font-size: 1.4rem;
-  color: #ffcc00;
+
+#crash-graph {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#current-multiplier {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(5rem, 14vw, 10rem);
   font-weight: bold;
-  text-shadow: 0 0 10px #ffcc0066;
-  padding: 20px;
-  background: rgba(255, 0, 0, 0.15);
+  color: #00eaff;
+  text-shadow: 0 0 40px #00eaff, 0 0 80px #00eaff;
+  z-index: 15;
+  pointer-events: none;
+}
+
+#rocket {
+  position: absolute;
+  font-size: 5.5rem;
+  z-index: 25;
+  transition: all 0.08s linear;
+}
+.crash-controls {
+  position: relative;
+  z-index: 20;
+  background: rgba(10, 14, 23, 0.9);
+  padding: 15px 20px;
+  border-top: 1px solid rgba(0, 180, 255, 0.25);
+}
+
+.expectation-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  color: #ccc;
+}
+
+.multi-history {
+  display: flex;
+  gap: 8px;
+}
+
+.multi-history button {
+  background: #2a3345;
+  border: none;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+.multi-history .purple { background: #9b59b6; }
+.multi-history .yellow { background: #f1c40f; }
+.multi-history .green { background: #2ecc71; }
+
+.bet-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.bet-input {
+  background: #1a2235;
+  border: 1px solid #40c4ff;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 10px;
+  width: 140px;
+  text-align: center;
+  font-size: 1.3rem;
+}
+
+.bet-btn, .cashout-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 16px 40px;
+  font-size: 1.4rem;
   border-radius: 12px;
-  border: 1px solid #ffcc00;
+  cursor: pointer;
+  min-width: 220px;
+  transition: background 0.2s;
 }
 
-.nav-item {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  touch-action: manipulation; /* лучше для мобильных */
+.bet-btn:hover {
+  background: #0056b3;
 }
 
-/* Убираем возможные блокировки от родительских элементов */
-#main-app,
-.tab-content {
-  pointer-events: auto;
-}
-/* Принудительное исправление кликабельности нижней панели */
-#bottom-nav {
-  z-index: 9999 !important;
-  pointer-events: auto !important;
+.cashout-btn {
+  background: #28a745;
 }
 
-.nav-item,
-.nav-item * {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  z-index: 10000 !important;
+.cashout-btn:hover {
+  background: #218838;
 }
 
-/* На всякий случай снимаем блокировки с контейнера */
-#main-app,
-.tab-content {
-  pointer-events: auto !important;
+.players-list {
+  margin-top: 20px;
+  max-height: 180px;
+  overflow-y: auto;
+  display: none;
 }
-#main-app {
-  opacity: 1 !important; /* сразу видимый */
+
+.player {
+  display: flex;
+  align-items: center;
+  background: #1a1f2e;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #34495e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 12px;
+}
+/* Фон всего body — базовый градиент космоса */
+body, html {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, #0a0e2a 0%, #000814 40%, #000 100%);
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
+
+.stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: 
+    /* Слой 1 — мелкие звёзды, хаотичные */
+    radial-gradient(white 1px, transparent 1px),
+    radial-gradient(white 0.8px, transparent 0.8px),
+    radial-gradient(white 1.2px, transparent 1.2px),
+    
+    /* Слой 2 — чуть крупнее, ещё хаотичнее */
+    radial-gradient(white 1.5px, transparent 1.5px),
+    radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px);
+  background-size: 
+    180px 180px, 220px 220px, 260px 260px,
+    300px 300px, 350px 350px;
+  background-position: 
+    0 0, 45px 80px, 120px 30px,
+    200px 150px, 80px 220px;
+  opacity: 0.45; /* регулируй от 0.3 до 0.6 */
+}
+
+/* Дополнительный слой для ещё большего хаоса и глубины */
+.stars::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(white 2px, transparent 2px),
+    radial-gradient(rgba(220,240,255,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(white 1px, transparent 1px);
+  background-size: 400px 400px, 500px 500px, 280px 280px;
+  background-position: 60px 100px, 150px 300px, 320px 50px;
+  opacity: 0.35;
+  animation: drift 120s linear infinite; /* лёгкое медленное движение */
+}
+
+/* Очень редкие крупные звёзды (для акцента) */
+.stars::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 15% 25%, white 3px, transparent 4px),
+    radial-gradient(circle at 85% 70%, white 2.5px, transparent 3.5px),
+    radial-gradient(circle at 40% 80%, rgba(255,255,255,0.9) 2px, transparent 3px);
+  background-size: 100% 100%;
+  opacity: 0.6;
+}
+
+/* Анимация лёгкого дрейфа звёзд (очень медленно) */
+@keyframes drift {
+  0%   { transform: translate(0, 0); }
+  100% { transform: translate(-30px, -20px); }
+}
+/* Основной фрейм Краша — оставляем как есть */
+.crash-frame {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+/* Игровая зона — уменьшаем и ограничиваем */
+.game-zone {
+  position: relative;
+  flex: 0 1 auto;               /* больше не растягивается на всё оставшееся место */
+  height: 55vh;                 /* фиксированная высота — 55% экрана, можно уменьшить до 45–50vh */
+  max-height: 65vh;             /* не больше 65% экрана даже на большом мониторе */
+  min-height: 300px;            /* минимум, чтобы на маленьких экранах не сжималась слишком */
+  margin: 0 auto;               /* центрируем по горизонтали, если нужно */
+  width: 100%;
+  max-width: 1000px;            /* ограничиваем ширину на больших экранах */
+  overflow: hidden;
+  border-radius: 12px;          /* скругление углов — опционально, как на референсах */
+}
+
+/* Canvas и фон строго внутри уменьшенной зоны */
+.grid-bg,
+#crash-graph {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Множитель — адаптируем размер под меньшую зону */
+#current-multiplier {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(3.5rem, 10vw, 7rem);  /* уменьшили максимальный размер */
+  font-weight: bold;
+  color: #00eaff;
+  text-shadow: 0 0 30px #00eaff, 0 0 60px #00eaff;
+  z-index: 15;
+  pointer-events: none;
+}
+
+/* Ракета тоже уменьшаем */
+#rocket {
+  font-size: 4rem;              /* было 5.5rem → теперь меньше */
+  z-index: 25;
+  transition: all 0.08s linear;
+}
+/* Логотип TON вместо ракеты — без предупреждений VS Code */
+#ton-icon {
+  position: absolute;
+  font-size: 4.5rem;                    /* размер — подгони под график */
+  font-weight: bold;
+  background: linear-gradient(135deg, #229ed9, #40c4ff, #229ed9);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;                   /* основной fallback — делает текст прозрачным */
+  -webkit-text-fill-color: transparent; /* для старых WebKit */
+  text-shadow: 0 0 15px rgba(64, 196, 255, 0.8),
+               0 0 30px rgba(34, 158, 217, 0.5);
+  z-index: 25;
+  pointer-events: none;
+  transition: all 0.08s linear;
+  transform: translate(-50%, 50%);      /* центрируем относительно конца линии */
+}
+
+/* Свечение вокруг */
+#ton-icon::after {
+  content: "";
+  position: absolute;
+  inset: -15px;
+  background: radial-gradient(circle, rgba(64,196,255,0.45) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: -1;
+  pointer-events: none;
 }
