@@ -1,5 +1,7 @@
 {
-  "url": "https://твой-сайт.vercel.app",
+  "url": "https://cosmogifts.vercel.app",
   "name": "CosmicGifts",
-  "iconUrl": "https://твой-сайт.vercel.app/icon.png"
+  "iconUrl": "https://img.icons8.com/color/512/rocket.png",
+  "termsOfUseUrl": "https://cosmogifts.vercel.app/terms",
+  "privacyPolicyUrl": "https://cosmogifts.vercel.app/privacy"
 }

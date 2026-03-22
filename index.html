@@ -5,26 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CosmicGifts</title>
   <link rel="stylesheet" href="css/styles.css">
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 </head>
 <body>
+
   <div class="stars"></div>
+
   <div id="main-app">
-    <!-- Главная вкладка -->
+
+    <!-- Главная -->
     <div id="title-tab" class="tab-content active">
       <div class="welcome-box">
         <h1>Добро пожаловать в CosmicGifts</h1>
         <p>Подключение кошельков: Telegram Wallet, Tonkeeper</p>
         <p>Пополнение и вывод — только TON</p>
-        <p>Создатели — Cosmo Creators</p>
+        <p>Создатель — @drozddos</p>
       </div>
     </div>
+
     <!-- Кейсы -->
     <div id="cases-tab" class="tab-content">
       <h2>Кейсы</h2>
       <p>В разработке</p>
     </div>
+
     <!-- Краш -->
     <div id="crash-tab" class="tab-content">
       <div class="crash-frame">
@@ -34,44 +39,43 @@
           <div id="ton-icon">₿</div>
           <div id="current-multiplier">1.00x</div>
         </div>
+
         <div class="crash-controls">
           <div class="expectation-bar">
             <span>Ожидание</span>
             <div class="multi-history"></div>
           </div>
+
           <div class="bet-row">
             <input type="number" id="bet-amount" placeholder="0.00" min="0.05" step="0.01" class="bet-input">
-            <button id="place-bet-btn" class="bet-btn">Сделать ставку</button>
-            <button id="cash-out-btn" class="cashout-btn" style="display:none;">Вывести</button>
+            <button id="place-bet-btn">Сделать ставку</button>
+            <button id="cash-out-btn" style="display:none;">Вывести</button>
           </div>
-          <div class="players-list" id="players-list"></div>
         </div>
       </div>
     </div>
+
     <!-- Кошелёк -->
     <div id="wallet-tab" class="tab-content">
       <h2>Кошелёк</h2>
-      <div id="auth-form">
-        <input type="email" id="email" placeholder="Email" required><br><br>
-        <input type="password" id="password" placeholder="Пароль" required><br><br>
-        <button id="signup-btn">Зарегистрироваться</button>
-        <button id="signin-btn">Войти</button>
-        <button id="logout-btn" style="display:none;">Выйти</button>
-      </div>
-      <div id="wallet-info" style="display:none;">
-        <p>Аккаунт: <span id="user-email"></span></p>
+      <div id="wallet-info">
+        <p>Адрес кошелька: <span id="wallet-address">не подключён</span></p>
         <p>Баланс: <span id="user-balance">0 TON</span></p>
-        <button id="connect-wallet-btn">Подключить кошелёк</button>
-        <p id="wallet-status">Кошелёк: не подключён</p>
-        <button id="deposit-btn">Пополнить</button>
-        <button id="withdraw-btn">Вывести</button>
+        <button id="connect-wallet-btn">Подключить кошелёк TON</button>
+        <div style="margin-top:20px;">
+          <button id="deposit-btn">Пополнить</button>
+          <button id="withdraw-btn">Вывести</button>
+        </div>
       </div>
+      <p id="wallet-status" style="margin-top:15px;">Статус: ожидание подключения...</p>
     </div>
+
     <!-- Профиль -->
     <div id="profile-tab" class="tab-content">
       <h2>Профиль</h2>
       <p>В разработке</p>
     </div>
+
     <!-- Навбар -->
     <div id="bottom-nav">
       <div class="nav-item active" data-tab="title-tab">Главная</div>
@@ -80,8 +84,22 @@
       <div class="nav-item" data-tab="wallet-tab">Кошелёк</div>
       <div class="nav-item" data-tab="profile-tab">Профиль</div>
     </div>
+
   </div>
+  <script src="https://unpkg.com/@tonconnect/ui@2/dist/tonconnect-ui.min.js"></script>
+  <script>
+  // Инициализация один раз при загрузке страницы
+  window.tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: 'https://mygame.vercel.app/tonconnect-manifest.json',   // ← ОБЯЗАТЕЛЬНО!
+    // buttonRootId: 'ton-connect-button-root',   // если хочешь автоматическую кнопку
+    // walletsListSource: 'https://...',          // можно кастомизировать список кошельков
+  });
+
+  console.log("TonConnectUI инициализирован");
+</script>
+
   <script src="js/tabs.js"></script>
-  <script src="js/main.js" type="module"></script>
+  <script src="js/ya-ebal.js"></script>
+
 </body>
 </html>
