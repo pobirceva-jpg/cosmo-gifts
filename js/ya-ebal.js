@@ -1,30 +1,58 @@
-// ================================================
-// ya-ebal.js — ПОЛНАЯ АКТУАЛЬНАЯ ВЕРСИЯ (20.03.2026)
-// Все исправления TonConnect + deposit/withdraw + защита
-// ================================================
+// Кусок 1/7 — Инициализация (вставь первым)
 
-console.log("ya-ebal.js — полная версия запущена");
+console.log("ya-ebal.js — чистая версия без конфликтов supabase");
 
-// === SUPABASE (если ещё не инициализирован — добавь свои данные один раз) ===
-const supabaseUrl = 'https://твоя-проект.supabase.co';          // ← замени
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // ← anon key из Supabase
-const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseAnonKey) : null;
+// Инициализация TonConnect с явным bridge (решает большинство ошибок 400)
+if (!window.tonConnectUI) {
+  window.tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: 'https://cosmogifts.vercel.app/tonconnect-manifest.json',
+    // Явно указываем надёжный bridge
+    bridgeUrl: 'https://bridge.tonapi.io/bridge',
+    // Дополнительные настройки для стабильности
+    enableUniversalLink: true,
+    uiPreferences: {
+      theme: 'dark'
+    }
+  });
+  console.log("TonConnectUI инициализирован с bridge.tonapi.io");
+}
 
-// ================================================
-// ИГРОВЫЕ ПЕРЕМЕННЫЕ
-// ================================================
+// SUPABASE — используем свою переменную, чтобы не конфликтовать
+const SUPABASE_URL = 'https://gsjyskfnhmpcucukwjqb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdzanlza2ZuaG1wY3VjdWt3anFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxNzc0NzYsImV4cCI6MjA1NTc1MzQ3Nn0.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // ← замени на свой anon key
+
+let mySupabase = null;
+
+if (window.supabase) {
+  try {
+    mySupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log("mySupabase успешно создан");
+  } catch (err) {
+    console.error("Ошибка создания mySupabase:", err);
+  }
+} else {
+  console.error("Библиотека @supabase/supabase-js не загружена!");
+}
+
+// ====================
+// Константы проекта
+// ====================
+const GAME_DEPOSIT_ADDRESS = 'UQAJ14WtUDaPtSFe8QK b10KI7StBE55eWiK927y-_Yu3xgH7'; // ← замени на свой реальный адрес
+
+const MAX_MULTIPLIER = 15;
+
+// ====================
+// Глобальные переменные краш-игры
+// ====================
 let crashInterval = null;
 let currentMultiplier = 1.00;
 let crashPoint = 0;
 let betAmount = 0;
 let hasCashedOut = false;
 let ctx = null;
-const MAX_MULTIPLIER = 15;
 let pastMultipliers = [];
+// Кусок 2/7 — Утилиты для графика и истории
 
-// ================================================
-// УТИЛИТЫ
-// ================================================
 function generateCrashPoint() {
   const e = Math.pow(2, 32);
   const h = crypto.getRandomValues(new Uint32Array(1))[0];
@@ -82,22 +110,18 @@ function updateHistory() {
     historyDiv.appendChild(btn);
   });
 }
+// Кусок 3/7 — Функции кошелька
 
-// ================================================
-// ОСНОВНЫЕ ФУНКЦИИ КОШЕЛЬКА И ИГРЫ
-// ================================================
 window.connectWallet = async () => {
   if (!window.tonConnectUI) {
-    alert('TonConnectUI не инициализирован. Добавьте скрипт в HTML!');
-    return;
-  }
-  if (window.tonConnectUI.connected) {
-    await loadUserAndWallet();
+    alert('TonConnectUI не загружен. Проверьте скрипт в HTML.');
     return;
   }
   try {
     document.getElementById('wallet-status').innerText = 'Подключение...';
-    await window.tonConnectUI.connectWallet();
+    if (!window.tonConnectUI.connected) {
+      await window.tonConnectUI.connectWallet();
+    }
     await loadUserAndWallet();
   } catch (err) {
     alert('Ошибка подключения: ' + (err.message || err));
@@ -105,7 +129,7 @@ window.connectWallet = async () => {
 };
 
 window.loadUserAndWallet = async () => {
-  if (!window.tonConnectUI) return;
+  if (!mySupabase || !window.tonConnectUI) return;
 
   const addressSpan = document.getElementById('wallet-address');
   const statusSpan = document.getElementById('wallet-status');
@@ -113,25 +137,31 @@ window.loadUserAndWallet = async () => {
   const connectBtn = document.getElementById('connect-wallet-btn');
 
   if (window.tonConnectUI.connected) {
-    const account = window.tonConnectUI.account;
-    if (!account) return;
-    const address = account.address;
-    addressSpan.innerText = address.slice(0, 6) + '...' + address.slice(-4);
-    statusSpan.innerText = 'Кошелёк подключён';
-    connectBtn.style.display = 'none';
+    try {
+      const account = window.tonConnectUI.account;
+      if (!account?.address) throw new Error('Нет адреса');
 
-    // Загружаем баланс
-    let { data } = await supabase
-      .from('accounts')
-      .select('balance')
-      .eq('wallet_address', address)
-      .single();
+      const address = account.address;
+      addressSpan.innerText = address.slice(0, 6) + '...' + address.slice(-4);
+      statusSpan.innerText = 'Кошелёк подключён';
+      connectBtn.style.display = 'none';
 
-    if (!data) {
-      await supabase.from('accounts').insert({ wallet_address: address, balance: 0 });
-      data = { balance: 0 };
+      let { data } = await mySupabase
+        .from('accounts')
+        .select('balance')
+        .eq('wallet_address', address)
+        .single();
+
+      if (!data) {
+        await mySupabase.from('accounts').insert({ wallet_address: address, balance: 0 });
+        data = { balance: 0 };
+      }
+
+      balanceSpan.innerText = `${data.balance} TON`;
+    } catch (err) {
+      console.error(err);
+      statusSpan.innerText = 'Ошибка загрузки';
     }
-    balanceSpan.innerText = `${data.balance} TON`;
   } else {
     addressSpan.innerText = 'не подключён';
     statusSpan.innerText = 'Подключите кошелёк';
@@ -140,156 +170,173 @@ window.loadUserAndWallet = async () => {
   }
 };
 
-// ================================================
-// ПОПОЛНЕНИЕ (deposit) — только alert + комментарий
-// ================================================
-const GAME_DEPOSIT_ADDRESS = 'EQ...твой_адрес_куда_шлют_TON...';  // создай отдельный кошелёк для депозитов!
+async function updateBalance(address, delta) {
+  if (!mySupabase) return 0;
+  try {
+    const { data } = await mySupabase
+      .from('accounts')
+      .select('balance')
+      .eq('wallet_address', address)
+      .single();
+
+    const newBalance = (data?.balance || 0) + delta;
+
+    await mySupabase
+      .from('accounts')
+      .update({ balance: newBalance })
+      .eq('wallet_address', address);
+
+    document.getElementById('user-balance').innerText = `${newBalance} TON`;
+    return newBalance;
+  } catch (err) {
+    console.error('updateBalance ошибка:', err);
+    return 0;
+  }
+}
+// Кусок 4/7 — Пополнение и вывод
 
 window.deposit = async () => {
-  if (!window.tonConnectUI?.connected) return alert('Подключи кошелёк');
+  if (!window.tonConnectUI?.connected) return alert('Сначала подключите кошелёк');
 
   const account = window.tonConnectUI.account;
   const userAddress = account.address;
 
-  // Уникальный комментарий (чтобы бот знал, кому зачислить)
   const comment = `dep_${userAddress.slice(0, 10)}_${Date.now()}`;
 
   alert(`
-    Пополни баланс:\n\n +
-    Отправь TON на: ${GAME_DEPOSIT_ADDRESS}\n\n +
-    Комментарий (обязательно!): ${comment}\n\n +
-    После 1–3 подтверждений баланс обновится (обнови страницу). Мин. 0.05 TON.
+    Пополнение CosmicGifts\n\n +
+    Отправьте TON на:\n${GAME_DEPOSIT_ADDRESS}\n\n +
+    В комментарии обязательно укажите:\n${comment}\n\n +
+    Минимум 0.05 TON
   `);
 
-  // Копируем комментарий
-  navigator.clipboard.writeText(comment).then(() => alert('Комментарий скопирован!'));
+  try {
+    await navigator.clipboard.writeText(comment);
+    alert('Комментарий скопирован в буфер!');
+  } catch (e) {}
 };
 
-// ================================================
-// ВЫВОД (withdraw) — запрос + проверка баланса
-// ================================================
 window.withdraw = async () => {
-  const amount = parseFloat(prompt("Сумма вывода (мин 1 TON)"));
-  if (isNaN(amount) || amount < 1) return alert("Неверно");
+  if (!window.tonConnectUI?.connected) return alert('Сначала подключите кошелёк');
 
-  const { data } = await supabase.from("accounts").select("balance").eq("wallet_address", userAddress).single();
-  if (data.balance < amount) return alert("Недостаточно");
+  const amountStr = prompt('Сколько TON вывести? (минимум 0.2 TON)', '1');
+  if (!amountStr) return;
 
-  // Запрос в Supabase
-  await supabase.from("withdraw_requests").insert({
-    user_address: userAddress,
-    amount,
-    status: "pending",
-    created_at: new Date().toISOString()
-  });
+  const amount = parseFloat(amountStr);
+  if (isNaN(amount) || amount < 0.2) return alert('Неверная сумма');
 
-  alert("Запрос создан! Ожидай обработки (вручную или ботом).");
+  const account = window.tonConnectUI.account;
+  const userAddress = account.address;
+
+  try {
+    const { data, error } = await mySupabase
+      .from('accounts')
+      .select('balance')
+      .eq('wallet_address', userAddress)
+      .single();
+
+    if (error || !data || data.balance < amount) {
+      return alert(`Недостаточно средств. Баланс: ${data?.balance || 0} TON`);
+    }
+
+    const { error: insertError } = await mySupabase
+      .from('withdraw_requests')
+      .insert({ user_address: userAddress, amount, status: 'pending' });
+
+    if (insertError) throw insertError;
+
+    alert(`Запрос на вывод ${amount} TON создан. Ожидайте обработки.`);
+
+  } catch (err) {
+    alert('Ошибка при выводе: ' + (err.message || err));
+  }
 };
+// Кусок 5/7 — Краш-игра (начало)
 
-// ================================================
-// ОБНОВЛЕНИЕ БАЛАНСА
-// ================================================
-async function updateBalance(address, amount) {
-  const { data } = await supabase
-    .from('accounts')
-    .select('balance')
-    .eq('wallet_address', address)
-    .single();
-
-  const newBalance = (data?.balance || 0) + amount;
-
-  await supabase
-    .from('accounts')
-    .update({ balance: newBalance })
-    .eq('wallet_address', address);
-
-  document.getElementById('user-balance').innerText = `${newBalance} TON`;
-  return newBalance;
-}
-
-// ================================================
-// ИГРА КРАШ
-// ================================================
 window.startCrashGame = async () => {
-  if (!window.tonConnectUI?.connected) {
-    alert('Сначала подключите кошелёк TON');
-    return;
-  }
+  if (!window.tonConnectUI?.connected) return alert('Сначала подключите кошелёк');
 
-  betAmount = parseFloat(document.getElementById('bet-amount').value);
-  if (isNaN(betAmount) || betAmount < 0.05) {
-    alert('Минимальная ставка 0.05 TON');
-    return;
-  }
+  betAmount = parseFloat(document.getElementById('bet-amount').value || 0);
+  if (isNaN(betAmount) || betAmount < 0.05) return alert('Минимальная ставка 0.05 TON');
 
   const account = window.tonConnectUI.account;
   const address = account.address;
-  const { data } = await supabase
-    .from('accounts')
-    .select('balance')
-    .eq('wallet_address', address)
-    .single();
 
-  if (!data || data.balance < betAmount) {
-    alert('Недостаточно средств');
-    return;
-  }
+  try {
+    const { data } = await mySupabase
+      .from('accounts')
+      .select('balance')
+      .eq('wallet_address', address)
+      .single();
 
-  await updateBalance(address, -betAmount);
+    if (!data || data.balance < betAmount) return alert('Недостаточно средств');
 
-  // Запуск игры (остальной код без изменений)
-  document.getElementById('place-bet-btn').style.display = 'none';
-  document.getElementById('cash-out-btn').style.display = 'block';
-  document.getElementById('bet-amount').disabled = true;
+    await updateBalance(address, -betAmount);
 
-  currentMultiplier = 1.00;
-  hasCashedOut = false;
-  crashPoint = generateCrashPoint();
+    if (crashInterval) clearInterval(crashInterval);
 
-  const canvas = document.getElementById('crash-graph');
-  ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+    document.getElementById('place-bet-btn').style.display = 'none';
+    document.getElementById('cash-out-btn').style.display = 'block';
+    document.getElementById('bet-amount').disabled = true;
 
-  drawGraphAndRocket();
+    currentMultiplier = 1.00;
+    hasCashedOut = false;
+    crashPoint = generateCrashPoint();
 
-  crashInterval = setInterval(() => {
-    currentMultiplier += 0.015;
-    if (currentMultiplier >= MAX_MULTIPLIER) {
-      clearInterval(crashInterval);
-      cashOut();
-      return;
-    }
-    if (currentMultiplier >= crashPoint) {
-      clearInterval(crashInterval);
-      document.getElementById('place-bet-btn').style.display = 'block';
-      document.getElementById('cash-out-btn').style.display = 'none';
-      document.getElementById('bet-amount').disabled = false;
+    const canvas = document.getElementById('crash-graph');
+    ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      pastMultipliers.push(currentMultiplier);
-      if (pastMultipliers.length > 5) pastMultipliers.shift();
-      updateHistory();
-
-      if (!hasCashedOut) alert(`Краш на ${currentMultiplier.toFixed(2)}x!`);
-      return;
-    }
-
-    document.getElementById('current-multiplier').innerText = `${currentMultiplier.toFixed(2)}x`;
     drawGraphAndRocket();
-  }, 70);
+
+    crashInterval = setInterval(() => {
+      currentMultiplier += 0.015;
+
+      if (currentMultiplier >= MAX_MULTIPLIER) {
+        clearInterval(crashInterval);
+        cashOut();
+        return;
+      }
+
+      if (currentMultiplier >= crashPoint) {
+        clearInterval(crashInterval);
+        document.getElementById('place-bet-btn').style.display = 'block';
+        document.getElementById('cash-out-btn').style.display = 'none';
+        document.getElementById('bet-amount').disabled = false;
+
+        pastMultipliers.push(currentMultiplier);
+        if (pastMultipliers.length > 5) pastMultipliers.shift();
+        updateHistory();
+
+        if (!hasCashedOut) alert(`Краш на ${currentMultiplier.toFixed(2)}x!`);
+        return;
+      }
+
+      document.getElementById('current-multiplier').innerText = `${currentMultiplier.toFixed(2)}x`;
+      drawGraphAndRocket();
+    }, 70);
+  } catch (err) {
+    alert('Ошибка запуска игры: ' + err.message);
+  }
 };
+// Кусок 6/7 — Функция cashOut
 
 window.cashOut = async () => {
   if (hasCashedOut || currentMultiplier >= crashPoint) return;
 
   hasCashedOut = true;
-  clearInterval(crashInterval);
+  if (crashInterval) clearInterval(crashInterval);
 
   const win = betAmount * currentMultiplier;
   const account = window.tonConnectUI.account;
   const address = account.address;
 
-  await updateBalance(address, win);
-  alert(`Выиграно ${win.toFixed(2)} TON на ${currentMultiplier.toFixed(2)}x!`);
+  try {
+    await updateBalance(address, win);
+    alert(`Выиграно ${win.toFixed(2)} TON на ${currentMultiplier.toFixed(2)}x!`);
+  } catch (err) {
+    alert('Ошибка начисления выигрыша');
+  }
 
   pastMultipliers.push(currentMultiplier);
   if (pastMultipliers.length > 5) pastMultipliers.shift();
@@ -301,15 +348,13 @@ window.cashOut = async () => {
 
   drawGraphAndRocket();
 };
+// Кусок 7/7 — Запуск при загрузке страницы
 
-// ================================================
-// ЗАПУСК ВСЁГО
-// ================================================
 window.addEventListener('load', () => {
   setTimeout(() => {
-    console.log("Проверяем кнопки...");
+    console.log("Кнопки инициализированы");
 
-    // Добавляем слушатели
+    // Добавляем слушатели кнопок
     document.getElementById('connect-wallet-btn')?.addEventListener('click', window.connectWallet);
     document.getElementById('deposit-btn')?.addEventListener('click', window.deposit);
     document.getElementById('withdraw-btn')?.addEventListener('click', window.withdraw);
@@ -318,9 +363,7 @@ window.addEventListener('load', () => {
 
     // Реактивность TonConnect
     if (window.tonConnectUI) {
-      window.tonConnectUI.onStatusChange(() => {
-        loadUserAndWallet();
-      });
+      window.tonConnectUI.onStatusChange(() => loadUserAndWallet());
     }
 
     loadUserAndWallet();
