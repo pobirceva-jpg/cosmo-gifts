@@ -42,50 +42,50 @@ let pastMultipliers = [];
 // ====================== ИНИЦИАЛИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ ======================
 async function initUser() {
   const infoEl = document.getElementById('user-info');
-  infoEl.innerHTML = 'Проверка Telegram WebApp...';
-
+  
   if (!tg) {
-    infoEl.innerHTML = <span style="color:red;">Ошибка: Telegram WebApp не обнаружен.<br>Откройте через бота.</span>;
-    console.error("tg is undefined");
+    infoEl.innerHTML = <span style="color:red;">Telegram WebApp не обнаружен.<br>Откройте приложение через бота.</span>;
+    console.error("❌ tg is undefined");
     return null;
   }
 
-  if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
-    infoEl.innerHTML = <span style="color:orange;">initDataUnsafe пустой.<br>Попробуйте переоткрыть Mini App.</span>;
-    console.error("initDataUnsafe:", tg.initDataUnsafe);
-    console.log("Полный initData:", tg.initData);
+  if (!tg.initDataUnsafe?.user) {
+    infoEl.innerHTML = <span style="color:orange;">Нет данных от Telegram.<br>Попробуйте переоткрыть Mini App (/start).</span>;
+    console.error("❌ initDataUnsafe.user пустой", tg.initDataUnsafe);
     return null;
   }
-
-  infoEl.innerHTML = 'Telegram OK. Подключаемся к Supabase...';
 
   const userData = tg.initDataUnsafe.user;
-  const telegram_id = userData.id;   // пока используем number, потом переделаем на string если нужно
+  const telegram_id = String(userData.id);   // ← главное изменение: используем String вместо BigInt
   const username = userData.username ? `@${userData.username}` : `user_${userData.id}`;
 
-  console.log("✅ Telegram user:", { telegram_id, username, full: userData });
+  console.log("✅ Получены данные Telegram:", { telegram_id, username, fullUser: userData });
+
+  infoEl.innerHTML = `Telegram OK (ID: ${telegram_id})<br>Подключаемся к базе...`;
 
   if (!mySupabase) {
-    infoEl.innerHTML = <span style="color:red;">Supabase клиент не создан (проверьте SUPABASE_ANON_KEY)</span>;
+    infoEl.innerHTML = <span style="color:red;">Supabase не инициализирован (проверь SUPABASE_ANON_KEY)</span>;
     return null;
   }
 
-  try {`
-    infoEl.innerHTML = Ищем пользователя telegram_id = ${telegram_id}...`;
+  try {
+    infoEl.innerHTML = `Ищем пользователя в базе...`;
 
     let { data: user, error } = await mySupabase
       .from('users')
       .select('*')
-      .eq('telegram_id', telegram_id)
+      .eq('telegram_id', telegram_id)   // теперь сравниваем как строку
       .single();
 
     if (error) {
-      console.error("Supabase error:", error);
-      if (error.code === 'PGRST116') { // no rows
-        infoEl.innerHTML = 'Пользователь не найден — создаём нового...';
-        
+      console.warn("Supabase select error:", error);
+
+      if (error.code === 'PGRST116' || error.message.includes('no rows')) { 
+        // Создаём нового пользователя
+        infoEl.innerHTML = 'Пользователь не найден — создаём...';
+
         const newUser = {
-          telegram_id: telegram_id,     // попробуй также String(telegram_id) если будет ошибка типа
+          telegram_id: telegram_id,        // String
           username: username,
           balance: 0,
           ton_wallet: null
@@ -108,11 +108,12 @@ async function initUser() {
     currentUser = user;
     updateUserUI();
     console.log("✅ Пользователь успешно загружен:", currentUser);
+    infoEl.style.color = "#00ffaa";
     return user;
 
   } catch (err) {
-    console.error("❌ Критическая ошибка в initUser:", err);
-    infoEl.innerHTML = <span style="color:red;">Ошибка базы:<br>${err.message || err}</span>;
+    console.error("❌ Ошибка в initUser():", err);
+    infoEl.innerHTML = <span style="color:red;">Ошибка базы данных:<br>${err.message || 'Неизвестная ошибка'}</span>;
   }
 }
 
