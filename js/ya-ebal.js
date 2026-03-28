@@ -41,58 +41,78 @@ let pastMultipliers = [];
 
 // ====================== ИНИЦИАЛИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ ======================
 async function initUser() {
-  if (!tg?.initDataUnsafe?.user || !mySupabase) {
-    document.getElementById('user-info').innerHTML = 
-      <span style="color:red;">Ошибка: откройте игру внутри Telegram</span>;
+  const infoEl = document.getElementById('user-info');
+  infoEl.innerHTML = 'Проверка Telegram WebApp...';
+
+  if (!tg) {
+    infoEl.innerHTML = <span style="color:red;">Ошибка: Telegram WebApp не обнаружен.<br>Откройте через бота.</span>;
+    console.error("tg is undefined");
     return null;
   }
 
+  if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
+    infoEl.innerHTML = <span style="color:orange;">initDataUnsafe пустой.<br>Попробуйте переоткрыть Mini App.</span>;
+    console.error("initDataUnsafe:", tg.initDataUnsafe);
+    console.log("Полный initData:", tg.initData);
+    return null;
+  }
+
+  infoEl.innerHTML = 'Telegram OK. Подключаемся к Supabase...';
+
   const userData = tg.initDataUnsafe.user;
-  const telegram_id = BigInt(userData.id);   // важно использовать BigInt для telegram_id
+  const telegram_id = userData.id;   // пока используем number, потом переделаем на string если нужно
   const username = userData.username ? `@${userData.username}` : `user_${userData.id}`;
 
-  try {
-    // Ищем пользователя
+  console.log("✅ Telegram user:", { telegram_id, username, full: userData });
+
+  if (!mySupabase) {
+    infoEl.innerHTML = <span style="color:red;">Supabase клиент не создан (проверьте SUPABASE_ANON_KEY)</span>;
+    return null;
+  }
+
+  try {`
+    infoEl.innerHTML = Ищем пользователя telegram_id = ${telegram_id}...`;
+
     let { data: user, error } = await mySupabase
       .from('users')
       .select('*')
       .eq('telegram_id', telegram_id)
       .single();
 
-    if (error && error.code === 'PGRST116') { // пользователь не найден
-      const newUser = {
-        telegram_id: telegram_id,
-        username: username,
-        balance: 0,
-        ton_wallet: null
-      };
+    if (error) {
+      console.error("Supabase error:", error);
+      if (error.code === 'PGRST116') { // no rows
+        infoEl.innerHTML = 'Пользователь не найден — создаём нового...';
+        
+        const newUser = {
+          telegram_id: telegram_id,     // попробуй также String(telegram_id) если будет ошибка типа
+          username: username,
+          balance: 0,
+          ton_wallet: null
+        };
 
-      const { data: inserted } = await mySupabase
-        .from('users')
-        .insert(newUser)
-        .select()
-        .single();
+        const { data: inserted, error: insertError } = await mySupabase
+          .from('users')
+          .insert(newUser)
+          .select()
+          .single();
 
-      user = inserted;
-      console.log("Создан новый пользователь:", username);
-    } else if (error) {
-      throw error;
-    }
-
-    // Обновляем username, если он поменялся
-    if (user.username !== username) {
-      await mySupabase.from('users').update({ username }).eq('telegram_id', telegram_id);
-      user.username = username;
+        if (insertError) throw insertError;
+        user = inserted;
+        console.log("✅ Создан новый пользователь");
+      } else {
+        throw error;
+      }
     }
 
     currentUser = user;
     updateUserUI();
+    console.log("✅ Пользователь успешно загружен:", currentUser);
     return user;
 
   } catch (err) {
-    console.error("initUser ошибка:", err);
-    document.getElementById('user-info').innerHTML = <span style="color:red;">Ошибка базы данных</span>;
-    return null;
+    console.error("❌ Критическая ошибка в initUser:", err);
+    infoEl.innerHTML = <span style="color:red;">Ошибка базы:<br>${err.message || err}</span>;
   }
 }
 
