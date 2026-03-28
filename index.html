@@ -93,10 +93,153 @@
       <div class="nav-item" data-tab="wallet-tab">Баланс</div>
       <div class="nav-item" data-tab="profile-tab">Профиль</div>
     </div>
+    <!-- ====================== ВСТРОЕННЫЙ YA-EBAL.JS ====================== -->
+  <script>
+    console.log("%cCosmicGifts — встроенная версия v4", "color: #00ffaa; font-size: 14px");
 
-  </div>
+    // SUPABASE
+    const SUPABASE_URL = 'https://gsjyskfnhmpcucukwjqb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdzanlza2ZuaG1wY3VjdWt3anFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxNzc0NzYsImV4cCI6MjA1NTc1MzQ3Nn0.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; 
+    // ← Вставь сюда ПОЛНЫЙ anon key
 
-  <script src="js/tabs.js"></script>
-  <script src="js/ya-ebal.js"></script>
+    let mySupabase = null;
+    let currentUser = null;
+    const tg = window.Telegram?.WebApp;
+
+    if (window.supabase) {
+      mySupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      console.log("✅ Supabase клиент создан");
+    }
+
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      console.log("✅ Telegram WebApp инициализирован");
+    }
+
+    const GAME_DEPOSIT_ADDRESS = 'UQAJ14WtUDaPtSFe8QKb1OKI7StBE55eWiK927y-_Yu3xgH7';
+
+    // ====================== INIT USER ======================
+    async function initUser() {
+      const infoEl = document.getElementById('user-info');
+      infoEl.innerHTML = "Проверка Telegram WebApp...";
+
+      if (!tg?.initDataUnsafe?.user) {
+        infoEl.innerHTML = '<span style="color:red">Нет данных от Telegram.<br>Переоткройте приложение через бота (/start)</span>';
+        console.error("❌ initDataUnsafe.user отсутствует");
+        return;
+      }
+
+      const userData = tg.initDataUnsafe.user;
+      const telegram_id = String(userData.id);
+      const username = userData.username ? '@' + userData.username : 'user_' + userData.id;
+
+      console.log("✅ Telegram данные получены:", { telegram_id, username });
+
+      infoEl.innerHTML = 'ID: ' + telegram_id + '<br>Подключение к Supabase...';
+
+      try {
+        let { data: user, error } = await mySupabase
+          .from('users')
+          .select('*')
+          .eq('telegram_id', telegram_id)
+          .single();
+
+        if (error && error.code === 'PGRST116') {
+          infoEl.innerHTML = "Создаём новый профиль...";
+
+          const newUser = {
+            telegram_id: telegram_id,
+            username: username,
+            balance: 0,
+            ton_wallet: null
+          };
+
+          const { data: inserted, error: insertErr } = await mySupabase
+            .from('users')
+            .insert(newUser)
+            .select()
+            .single();
+
+          if (insertErr) throw insertErr;
+          user = inserted;
+          console.log("✅ Новый пользователь создан");
+        } else if (error) {
+          throw error;
+        }
+
+        currentUser = user;
+        updateUserUI();
+        console.log("✅ Пользователь успешно загружен:", currentUser);
+
+      } catch (err) {
+        console.error("❌ Ошибка Supabase:", err);
+        infoEl.innerHTML = '<span style="color:red">Ошибка базы данных:<br>' + (err.message || err) + '</span>';
+      }
+    }
+
+    function updateUserUI() {
+      if (!currentUser) return;
+      const infoEl = document.getElementById('user-info');
+      infoEl.innerHTML = `
+        <strong>${currentUser.username.replace('@', '')}</strong><br>
+        Баланс: <span style="color:#00ffaa; font-size:21px; font-weight:bold;">
+          ${Number(currentUser.balance || 0).toFixed(2)} TON
+        </span>`
+      ;
+    }
+
+    // ====================== ПОПОЛНЕНИЕ ======================
+    window.deposit = function() {
+      if (!currentUser) return alert("Профиль ещё загружается...");
+
+      const message = "💰 Пополнение CosmicGifts\n\n" +
+                      "Адрес:\n" + GAME_DEPOSIT_ADDRESS + "\n\n" +
+                      "Комментарий (обязательно):\n" + currentUser.username + "\n\n" +
+                      "Минимум: 0.1 TON";
+
+      alert(message);
+      navigator.clipboard.writeText(currentUser.username);
+    };
+
+    // ====================== ВЫВОД ======================
+    window.withdraw = async function() {
+      if (!currentUser) return alert("Профиль не загружен");
+const amountStr = prompt("Сумма вывода (мин 0.2 TON):", "1");
+      if (!amountStr) return;
+
+      const amount = parseFloat(amountStr);
+      if (isNaN(amount) || amount < 0.2) return alert("Минимальная сумма 0.2 TON");
+
+      if (Number(currentUser.balance) < amount) return alert("Недостаточно средств");
+
+      const tonAddress = prompt("TON адрес для вывода:", "");
+      if (!tonAddress) return;
+
+      try {
+        await mySupabase.from('withdraw_requests').insert({
+          telegram_id: currentUser.telegram_id,
+          username: currentUser.username,
+          amount: amount,
+          ton_address: tonAddress,
+          status: 'pending'
+        });
+
+        alert("Запрос на вывод создан! Ожидайте подтверждения.");
+        currentUser.balance = Number(currentUser.balance) - amount;
+        updateUserUI();
+      } catch (err) {
+        alert("Ошибка создания запроса");
+        console.error(err);
+      }
+    };
+
+    // ====================== ЗАПУСК ======================
+    window.addEventListener('load', function() {
+      console.log("🚀 CosmicGifts запущен");
+      initUser();
+    });
+  </script>
+
 </body>
 </html>
