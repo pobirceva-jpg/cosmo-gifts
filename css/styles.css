@@ -18,6 +18,38 @@ body, html {
   inset: 0;
   pointer-events: none;
   z-index: 0;
+  background: 
+    radial-gradient(white 1px, transparent 1px),
+    radial-gradient(white 0.8px, transparent 0.8px),
+    radial-gradient(white 1.2px, transparent 1.2px),
+    radial-gradient(white 1.5px, transparent 1.5px),
+    radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px);
+  background-size: 
+    180px 180px, 220px 220px, 260px 260px,
+    300px 300px, 350px 350px;
+  background-position: 
+    0 0, 45px 80px, 120px 30px,
+    200px 150px, 80px 220px;
+  opacity: 0.45;
+}
+
+.stars::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(white 2px, transparent 2px),
+    radial-gradient(rgba(220,240,255,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(white 1px, transparent 1px);
+  background-size: 400px 400px, 500px 500px, 280px 280px;
+  background-position: 60px 100px, 150px 300px, 320px 50px;
+  opacity: 0.35;
+  animation: drift 120s linear infinite;
+}
+
+@keyframes drift {
+  0%   { transform: translate(0, 0); }
+  100% { transform: translate(-30px, -20px); }
 }
 
 #main-app {
@@ -71,11 +103,11 @@ body, html {
 }
 
 .nav-item.active {
-  color: #40c4ff;
-  text-shadow: 0 0 10px rgba(64, 196, 255, 0.6);
+  color: #00f0d0;
+  text-shadow: 0 0 10px rgba(0, 240, 208, 0.6);
 }
 
-/* Главная вкладка */
+/* Главная вкладка — полностью как было */
 #title-tab .welcome-box {
   background: rgba(8, 12, 35, 0.75);
   border-radius: 20px;
@@ -90,338 +122,82 @@ body, html {
   color: #40c4ff;
   text-shadow: 0 0 20px #40c4ff80;
 }
-
 #title-tab p {
   font-size: 1.3rem;
   line-height: 1.8;
   color: #e0e0ff;
-  max-width: 800px;
-  margin: 0 auto 1rem;
 }
 
-/* Краш — максимальная изоляция + структура */
-#crash-tab {
-  position: relative;
-  overflow: hidden;
-  background: #0a0e17;
-  height: 100%;
-  width: 100%;
-  isolation: isolate;
-}
-
-.tab-content:not(#crash-tab) .crash-frame,
-.tab-content:not(#crash-tab) .game-zone,
-.tab-content:not(#crash-tab) #current-multiplier,
-.tab-content:not(#crash-tab) #rocket,
-.tab-content:not(#crash-tab) .crash-controls,
-.tab-content:not(#crash-tab) .grid-bg,
-.tab-content:not(#crash-tab) #crash-graph,
-.tab-content:not(#crash-tab) .expectation-bar,
-.tab-content:not(#crash-tab) .bet-row {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
-.crash-frame {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-}
-
-.game-zone {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 50vh;
-  overflow: hidden;
-}
-
-.grid-bg {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, #0f1624, #0a0e17),
-              repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(0, 180, 255, 0.1) 40px, rgba(0, 180, 255, 0.1) 41px),
-              repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0, 180, 255, 0.1) 40px, rgba(0, 180, 255, 0.1) 41px);
-  background-size: 100% 100%, 100% 41px, 41px 100%;
-  
-}
-
-#crash-graph {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-#current-multiplier {
-  position: absolute;
-  top: 45%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: clamp(5rem, 14vw, 10rem);
+/* Кошелёк и новые элементы */
+#balance-display {
+  color: #00f0d0;
+  font-size: 36px;
   font-weight: bold;
-  color: #00eaff;
-  text-shadow: 0 0 40px #00eaff, 0 0 80px #00eaff;
-  z-index: 15;
-  pointer-events: none;
+  text-align: center;
+  margin: 30px 0;
 }
 
-#rocket {
-  position: absolute;
-  font-size: 5.5rem;
-  z-index: 25;
-  transition: all 0.08s linear;
-}
-.crash-controls {
-  position: relative;
-  z-index: 20;
-  background: rgba(10, 14, 23, 0.9);
-  padding: 15px 20px;
-  border-top: 1px solid rgba(0, 180, 255, 0.25);
+#deposit-address {
+  background: #1a1a1a;
+  padding: 14px;
+  border-radius: 10px;
+  font-family: monospace;
+  word-break: break-all;
+  cursor: pointer;
 }
 
-.expectation-bar {
+#deposit-address:hover {
+  color: #00f0d0;
+}
+
+.profile-stats {
+  background: #1a1a1a;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 25px 0;
+}
+
+.profile-stats div {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  font-size: 1.1rem;
-  color: #ccc;
+  margin: 14px 0;
+  font-size: 15px;
+  color: #ddd;
 }
 
-.multi-history {
-  display: flex;
-  gap: 8px;
-}
-
-.multi-history button {
-  background: #2a3345;
-  border: none;
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-}
-
-.multi-history .purple { background: #9b59b6; }
-.multi-history .yellow { background: #f1c40f; }
-.multi-history .green { background: #2ecc71; }
-
-.bet-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-.bet-input {
-  background: #1a2235;
-  border: 1px solid #40c4ff;
-  color: white;
-  padding: 12px 16px;
-  border-radius: 10px;
-  width: 140px;
-  text-align: center;
-  font-size: 1.3rem;
-}
-
-.bet-btn, .cashout-btn {
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 16px 40px;
-  font-size: 1.4rem;
-  border-radius: 12px;
-  cursor: pointer;
-  min-width: 220px;
-  transition: background 0.2s;
-}
-
-.bet-btn:hover {
-  background: #0056b3;
-}
-
-.cashout-btn {
-  background: #28a745;
-}
-
-.cashout-btn:hover {
-  background: #218838;
-}
-
-.players-list {
-  margin-top: 20px;
-  max-height: 180px;
-  overflow-y: auto;
-  display: none;
-}
-
-.player {
-  display: flex;
-  align-items: center;
-  background: #1a1f2e;
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-}
-
-.avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #34495e;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  margin-right: 12px;
-}
-/* Фон всего body — базовый градиент космоса */
-body, html {
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-  background: radial-gradient(ellipse at center, #0a0e2a 0%, #000814 40%, #000 100%);
-  color: #fff;
-  font-family: Arial, sans-serif;
-}
-
-.stars {
+.custom-modal {
   position: fixed;
   inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background: 
-    /* Слой 1 — мелкие звёзды, хаотичные */
-    radial-gradient(white 1px, transparent 1px),
-    radial-gradient(white 0.8px, transparent 0.8px),
-    radial-gradient(white 1.2px, transparent 1.2px),
-    
-    /* Слой 2 — чуть крупнее, ещё хаотичнее */
-    radial-gradient(white 1.5px, transparent 1.5px),
-    radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px);
-  background-size: 
-    180px 180px, 220px 220px, 260px 260px,
-    300px 300px, 350px 350px;
-  background-position: 
-    0 0, 45px 80px, 120px 30px,
-    200px 150px, 80px 220px;
-  opacity: 0.45; /* регулируй от 0.3 до 0.6 */
-}
-
-/* Дополнительный слой для ещё большего хаоса и глубины */
-.stars::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: 
-    radial-gradient(white 2px, transparent 2px),
-    radial-gradient(rgba(220,240,255,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(white 1px, transparent 1px);
-  background-size: 400px 400px, 500px 500px, 280px 280px;
-  background-position: 60px 100px, 150px 300px, 320px 50px;
-  opacity: 0.35;
-  animation: drift 120s linear infinite; /* лёгкое медленное движение */
-}
-
-/* Очень редкие крупные звёзды (для акцента) */
-.stars::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: 
-    radial-gradient(circle at 15% 25%, white 3px, transparent 4px),
-    radial-gradient(circle at 85% 70%, white 2.5px, transparent 3.5px),
-    radial-gradient(circle at 40% 80%, rgba(255,255,255,0.9) 2px, transparent 3px);
-  background-size: 100% 100%;
-  opacity: 0.6;
-}
-
-/* Анимация лёгкого дрейфа звёзд (очень медленно) */
-@keyframes drift {
-  0%   { transform: translate(0, 0); }
-  100% { transform: translate(-30px, -20px); }
-}
-/* Основной фрейм Краша — оставляем как есть */
-.crash-frame {
+  background: rgba(0, 0, 0, 0.96);
+  z-index: 1000;
   display: flex;
-  flex-direction: column;
-  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.custom-modal > div {
+  background: #111;
   width: 100%;
+  max-width: 420px;
+  border-radius: 20px;
+  padding: 24px;
+  border: 2px solid #00f0d0;
+  box-shadow: 0 0 30px rgba(0, 240, 208, 0.3);
 }
 
-/* Игровая зона — уменьшаем и ограничиваем */
-.game-zone {
-  position: relative;
-  flex: 0 1 auto;               /* больше не растягивается на всё оставшееся место */
-  height: 55vh;                 /* фиксированная высота — 55% экрана, можно уменьшить до 45–50vh */
-  max-height: 65vh;             /* не больше 65% экрана даже на большом мониторе */
-  min-height: 300px;            /* минимум, чтобы на маленьких экранах не сжималась слишком */
-  margin: 0 auto;               /* центрируем по горизонтали, если нужно */
-  width: 100%;
-  max-width: 1000px;            /* ограничиваем ширину на больших экранах */
-  overflow: hidden;
-  border-radius: 12px;          /* скругление углов — опционально, как на референсах */
+.big-btn, button {
+  background: #1f1f1f;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-/* Canvas и фон строго внутри уменьшенной зоны */
-.grid-bg,
-#crash-graph {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* Множитель — адаптируем размер под меньшую зону */
-#current-multiplier {
-  position: absolute;
-  top: 45%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: clamp(3.5rem, 10vw, 7rem);  /* уменьшили максимальный размер */
-  font-weight: bold;
-  color: #00eaff;
-  text-shadow: 0 0 30px #00eaff, 0 0 60px #00eaff;
-  z-index: 15;
-  pointer-events: none;
-}
-
-/* Ракета тоже уменьшаем */
-#rocket {
-  font-size: 4rem;              /* было 5.5rem → теперь меньше */
-  z-index: 25;
-  transition: all 0.08s linear;
-}
-/* Логотип TON вместо ракеты — без предупреждений VS Code */
-#ton-icon {
-  position: absolute;
-  font-size: 4.5rem;                    /* размер — подгони под график */
-  font-weight: bold;
-  background: linear-gradient(135deg, #229ed9, #40c4ff, #229ed9);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;                   /* основной fallback — делает текст прозрачным */
-  -webkit-text-fill-color: transparent; /* для старых WebKit */
-  text-shadow: 0 0 15px rgba(64, 196, 255, 0.8),
-               0 0 30px rgba(34, 158, 217, 0.5);
-  z-index: 25;
-  pointer-events: none;
-  transition: all 0.08s linear;
-  transform: translate(-50%, 50%);      /* центрируем относительно конца линии */
-}
-
-/* Свечение вокруг */
-#ton-icon::after {
-  content: "";
-  position: absolute;
-  inset: -15px;
-  background: radial-gradient(circle, rgba(64,196,255,0.45) 0%, transparent 70%);
-  border-radius: 50%;
-  z-index: -1;
-  pointer-events: none;
+.big-btn:hover, button:hover {
+  background: #00f0d0;
+  color: #000;
 }

@@ -4,14 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>CosmicGifts</title>
-  <link rel="stylesheet" href="css/styles.css">
   
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <!-- Telegram WebApp (ОБЯЗАТЕЛЬНО) -->
   <script src="https://telegram.org/js/telegram-web-app.js?61"></script>
-
+  
+  <link rel="stylesheet" href="css/styles.css">
   <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 </head>
 <body>
@@ -23,10 +20,9 @@
     <!-- Главная -->
     <div id="title-tab" class="tab-content active">
       <div class="welcome-box">
-        <h1>Добро пожаловать в CosmicGifts</h1>
-        <p>1 Telegram = 1 аккаунт</p>
-        <p>Пополнение: отправь TON на адрес игры с комментарием = твой username</p>
-        <p>Создатель — @drozddos</p>
+        <h1>CosmicGifts</h1>
+        <p>Краш-игра на TON</p>
+        <p>Зарегистрируйся в «Аккаунт» чтобы начать играть</p>
       </div>
     </div>
 
@@ -41,7 +37,7 @@
       <div class="crash-frame">
         <div class="game-zone">
           <div class="grid-bg"></div>
-          <canvas id="crash-graph" style="width:100%; height:100%; display:block; background:transparent;"></canvas>
+          <canvas id="crash-graph"></canvas>
           <div id="ton-icon">₿</div>
           <div id="current-multiplier">1.00x</div>
         </div>
@@ -61,185 +57,71 @@
       </div>
     </div>
 
-    <!-- Кошелёк (теперь это "Баланс и операции") -->
+    <!-- Кошелёк -->
     <div id="wallet-tab" class="tab-content">
-      <h2>Баланс и операции</h2>
+      <h2>Кошелёк</h2>
       
-      <div id="user-info" style="text-align:center; font-size:18px; margin:20px 0; padding:15px; background:rgba(0,0,0,0.4); border-radius:12px;">
-        Загрузка профиля...
+      <div id="balance-display" style="text-align:center; font-size:32px; font-weight:bold; margin:30px 0; color:#00ffaa;">
+        0.00 TON
       </div>
 
-      <div id="wallet-info">
+      <div style="display:flex; gap:12px; padding:0 15px; margin-bottom:30px;">
         <button id="deposit-btn" class="big-btn">Пополнить баланс</button>
         <button id="withdraw-btn" class="big-btn">Вывести TON</button>
       </div>
-      
-      <p id="wallet-status" style="margin-top:15px; text-align:center; color:#aaa;"></p>
-    </div>
 
-    <!-- Профиль -->
-    <div id="profile-tab" class="tab-content">
-      <h2>Профиль</h2>
-      <div id="profile-content">
-        <!-- Будет заполняться динамически -->
+      <!-- Инструкции в 2 колонки -->
+      <div class="instructions-grid">
+        <div class="instruction-card">
+          <h3>Как пополнить</h3>
+          <p>1. Нажми «Пополнить баланс»</p>
+          <p>2. Отправь TON на адрес ниже</p>
+          <p>3. В комментарии укажи <strong>свой никнейм</strong></p>
+          <div id="deposit-address" style="background:#1a1a1a; padding:12px; border-radius:8px; margin:15px 0; word-break:break-all; font-size:14px;">
+            UQAJ14WtUDaPtSFe8QKb1OKI7StBE55eWiK927y-_Yu3xgH7
+          </div>
+          <p style="font-size:13px; color:#aaa;">Баланс зачислится автоматически после подтверждения сети</p>
+        </div>
+
+        <div class="instruction-card">
+          <h3>Как вывести</h3>
+          <p>1. Нажми «Вывести TON»</p>
+          <p>2. Введи сумму и свой TON-адрес</p>
+          <p>3. Подтверди запрос</p>
+          <p style="font-size:13px; color:#aaa; margin-top:20px;">Вывод обрабатывается администратором</p>
+        </div>
       </div>
     </div>
 
-    <!-- Навбар -->
-    <div id="bottom-nav">
-      <div class="nav-item active" data-tab="title-tab">Главная</div>
+    <!-- Аккаунт / Регистрация -->
+    <div id="profile-tab" class="tab-content">
+      <h2>Аккаунт</h2>
+      <div id="profile-content" style="padding:20px;">
+        <!-- Кнопки Tasks и Referral -->
+      <div style="display:flex; gap:15px; padding:20px; margin-top:20px;">
+        <button onclick="showTasksModal()" 
+                style="flex:1; padding:18px; font-size:17px; background:#1f1f1f; border:2px solid #00ffaa; border-radius:12px; color:#fff;">
+          Tasks
+        </button>
+        <button onclick="showReferralModal()" 
+                style="flex:1; padding:18px; font-size:17px; background:#1f1f1f; border:2px solid #00ffaa; border-radius:12px; color:#fff;">
+          Referral
+        </button>
+      </div>
+     </div>
+    </div>
+
+    <!-- Хотбар -->
+    <div id="bottom-nav" style="position:fixed; bottom:0; left:0; right:0; background:#111; border-top:1px solid #333; display:flex; z-index:100;">
+      <div class="nav-item" data-tab="title-tab">Главная</div>
       <div class="nav-item" data-tab="cases-tab">Кейсы</div>
       <div class="nav-item" data-tab="crash-tab">Краш</div>
-      <div class="nav-item" data-tab="wallet-tab">Баланс</div>
-      <div class="nav-item" data-tab="profile-tab">Профиль</div>
+      <div class="nav-item" data-tab="wallet-tab">Кошелёк</div>
+      <div class="nav-item" data-tab="profile-tab">Аккаунт</div>
     </div>
-    <!-- ====================== ВСТРОЕННЫЙ YA-EBAL.JS ====================== -->
-  <script>
-    console.log("%cCosmicGifts — встроенная версия v4", "color: #00ffaa; font-size: 14px");
+   </div>
+  </div>
 
-    // SUPABASE
-    const SUPABASE_URL = 'https://gsjyskfnhmpcucukwjqb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdzanlza2ZuaG1wY3VjdWt3anFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxNzc0NzYsImV4cCI6MjA1NTc1MzQ3Nn0.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; 
-    // ← Вставь сюда ПОЛНЫЙ anon key
-
-    let mySupabase = null;
-    let currentUser = null;
-    const tg = window.Telegram?.WebApp;
-
-    if (window.supabase) {
-      mySupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      console.log("✅ Supabase клиент создан");
-    }
-
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      console.log("✅ Telegram WebApp инициализирован");
-    }
-
-    const GAME_DEPOSIT_ADDRESS = 'UQAJ14WtUDaPtSFe8QKb1OKI7StBE55eWiK927y-_Yu3xgH7';
-
-    // ====================== INIT USER ======================
-    async function initUser() {
-      const infoEl = document.getElementById('user-info');
-      infoEl.innerHTML = "Проверка Telegram WebApp...";
-
-      if (!tg?.initDataUnsafe?.user) {
-        infoEl.innerHTML = '<span style="color:red">Нет данных от Telegram.<br>Переоткройте приложение через бота (/start)</span>';
-        console.error("❌ initDataUnsafe.user отсутствует");
-        return;
-      }
-
-      const userData = tg.initDataUnsafe.user;
-      const telegram_id = String(userData.id);
-      const username = userData.username ? '@' + userData.username : 'user_' + userData.id;
-
-      console.log("✅ Telegram данные получены:", { telegram_id, username });
-
-      infoEl.innerHTML = 'ID: ' + telegram_id + '<br>Подключение к Supabase...';
-
-      try {
-        let { data: user, error } = await mySupabase
-          .from('users')
-          .select('*')
-          .eq('telegram_id', telegram_id)
-          .single();
-
-        if (error && error.code === 'PGRST116') {
-          infoEl.innerHTML = "Создаём новый профиль...";
-
-          const newUser = {
-            telegram_id: telegram_id,
-            username: username,
-            balance: 0,
-            ton_wallet: null
-          };
-
-          const { data: inserted, error: insertErr } = await mySupabase
-            .from('users')
-            .insert(newUser)
-            .select()
-            .single();
-
-          if (insertErr) throw insertErr;
-          user = inserted;
-          console.log("✅ Новый пользователь создан");
-        } else if (error) {
-          throw error;
-        }
-
-        currentUser = user;
-        updateUserUI();
-        console.log("✅ Пользователь успешно загружен:", currentUser);
-
-      } catch (err) {
-        console.error("❌ Ошибка Supabase:", err);
-        infoEl.innerHTML = '<span style="color:red">Ошибка базы данных:<br>' + (err.message || err) + '</span>';
-      }
-    }
-
-    function updateUserUI() {
-      if (!currentUser) return;
-      const infoEl = document.getElementById('user-info');
-      infoEl.innerHTML = `
-        <strong>${currentUser.username.replace('@', '')}</strong><br>
-        Баланс: <span style="color:#00ffaa; font-size:21px; font-weight:bold;">
-          ${Number(currentUser.balance || 0).toFixed(2)} TON
-        </span>`
-      ;
-    }
-
-    // ====================== ПОПОЛНЕНИЕ ======================
-    window.deposit = function() {
-      if (!currentUser) return alert("Профиль ещё загружается...");
-
-      const message = "💰 Пополнение CosmicGifts\n\n" +
-                      "Адрес:\n" + GAME_DEPOSIT_ADDRESS + "\n\n" +
-                      "Комментарий (обязательно):\n" + currentUser.username + "\n\n" +
-                      "Минимум: 0.1 TON";
-
-      alert(message);
-      navigator.clipboard.writeText(currentUser.username);
-    };
-
-    // ====================== ВЫВОД ======================
-    window.withdraw = async function() {
-      if (!currentUser) return alert("Профиль не загружен");
-const amountStr = prompt("Сумма вывода (мин 0.2 TON):", "1");
-      if (!amountStr) return;
-
-      const amount = parseFloat(amountStr);
-      if (isNaN(amount) || amount < 0.2) return alert("Минимальная сумма 0.2 TON");
-
-      if (Number(currentUser.balance) < amount) return alert("Недостаточно средств");
-
-      const tonAddress = prompt("TON адрес для вывода:", "");
-      if (!tonAddress) return;
-
-      try {
-        await mySupabase.from('withdraw_requests').insert({
-          telegram_id: currentUser.telegram_id,
-          username: currentUser.username,
-          amount: amount,
-          ton_address: tonAddress,
-          status: 'pending'
-        });
-
-        alert("Запрос на вывод создан! Ожидайте подтверждения.");
-        currentUser.balance = Number(currentUser.balance) - amount;
-        updateUserUI();
-      } catch (err) {
-        alert("Ошибка создания запроса");
-        console.error(err);
-      }
-    };
-
-    // ====================== ЗАПУСК ======================
-    window.addEventListener('load', function() {
-      console.log("🚀 CosmicGifts запущен");
-      initUser();
-    });
-  </script>
-
+  <script src="js/ya-ebal.js"></script>
 </body>
 </html>
